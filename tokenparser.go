@@ -1,12 +1,13 @@
 package tokenparser
 
-type ruleType int
+type ruleType uint8
 
 const (
-	upTo    ruleType = iota
-	skipTo  ruleType = iota
-	skip    ruleType = iota
-	skipAny ruleType = iota
+	upTo         ruleType = iota
+	skipTo       ruleType = iota
+	skip         ruleType = iota
+	skipAny      ruleType = iota
+	skipMultiple ruleType = iota
 )
 
 type Rule struct {
@@ -17,7 +18,7 @@ type Rule struct {
 
 type RuleList []Rule
 
-func (rl *RuleList) Start() func() *Rule {
+func (rl *RuleList) GetIterator() func() *Rule {
 	x := 0
 	return func() *Rule {
 		if len(*rl) > x {
@@ -57,10 +58,16 @@ func (tp *Tokenparser) SkipAny() {
 	tp.rules = append(tp.rules, Rule{skipAny, 0, nil})
 }
 
+func (tp *Tokenparser) SkipMultiple(count uint8) {
+	tp.rules = append(tp.rules, Rule{skipMultiple, count, nil})
+}
+
 func (tp *Tokenparser) ParseString(line string) bool {
-	nextRule := tp.rules.Start()
+	nextRule := tp.rules.GetIterator()
+
 	currentRule := nextRule()
 	linePointer := 0
+
 	for currentRule != nil {
 		switch currentRule.Type {
 		case skip:
@@ -78,6 +85,9 @@ func (tp *Tokenparser) ParseString(line string) bool {
 				return false
 			}
 			linePointer++
+
+		case skipMultiple:
+			linePointer += int(currentRule.Symbol)
 
 		case skipTo:
 			for {
