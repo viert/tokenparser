@@ -92,16 +92,15 @@ func (tp *Tokenparser) ParseString(line string) bool {
 			}
 
 		case upTo:
-			var accumulator string = ""
+			firstSym := linePointer
 			for {
 				if linePointer >= len(line) {
 					return false
 				}
 				if line[linePointer] != currentRule.Symbol {
-					accumulator += string(line[linePointer])
 					linePointer++
 				} else {
-					*currentRule.Destination = accumulator
+					*currentRule.Destination = line[firstSym:linePointer]
 					break
 				}
 			}
