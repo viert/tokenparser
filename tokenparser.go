@@ -13,6 +13,7 @@ const (
 	skipAny      ruleType = iota
 	skipMultiple ruleType = iota
 	searchString ruleType = iota
+	skipAll      ruleType = iota
 )
 
 type Rule struct {
@@ -54,6 +55,10 @@ func (tp *Tokenparser) UpTo(symbol uint8, destination *string) {
 
 func (tp *Tokenparser) Skip(symbol uint8) {
 	tp.rules = append(tp.rules, Rule{skip, symbol, "", nil})
+}
+
+func (tp *Tokenparser) SkipAll(symbol uint8) {
+	tp.rules = append(tp.rules, Rule{skipAll, symbol, "", nil})
 }
 
 func (tp *Tokenparser) SkipTo(symbol uint8) {
@@ -105,6 +110,14 @@ func (tp *Tokenparser) ParseString(line string) bool {
 					return false
 				}
 				if line[linePointer] != currentRule.Symbol {
+					linePointer++
+				} else {
+					break
+				}
+			}
+		case skipAll:
+			for {
+				if line[linePointer] == currentRule.Symbol {
 					linePointer++
 				} else {
 					break

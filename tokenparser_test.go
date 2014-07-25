@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseStrict(t *testing.T) {
-	testString := `[28/Jun/2013 12:54:48] example.com "GET /some/url HTTP/1.0" "Mozilla" "_session=3829834;" 28.314` + "\n"
+	testString := `[28/Jun/2013 12:54:48] example.com  "GET /some/url HTTP/1.0" "Mozilla" "_session=3829834;" 28.314` + "\n"
 	fmt.Println("Strict parsing")
 	fmt.Println("test pattern:", testString)
 
@@ -55,7 +55,7 @@ func TestParseStrict(t *testing.T) {
 	parser.SkipAny()
 	parser.SkipAny()
 	parser.UpTo(' ', &vhost)
-	parser.Skip(' ')
+	parser.SkipAll(' ')
 	parser.SkipAny()
 	parser.UpTo(' ', &method)
 	parser.Skip(' ')
