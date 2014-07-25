@@ -89,6 +89,32 @@ func TestParseStrict(t *testing.T) {
 	checkField(t, "reqtime", reqtime, "28.314")
 }
 
+func TestSearchString(t *testing.T) {
+	testString := `[23/Apr/2014 00:00:48] postfix/cleanup[29385] EBDBE28A0129: message-id=<20140423200004.EBDBE28A0129@mx.example.com>` + "\n"
+	fmt.Println("SearchString testing")
+	fmt.Println("test pattern:", testString)
+
+	parser := New()
+	var method, pid string
+
+	parser.SearchString("postfix")
+	parser.SkipMultiple(8)
+	parser.UpTo('[', &method)
+	parser.Skip('[')
+	parser.UpTo(']', &pid)
+	parser.SkipTo('\n')
+	parser.Skip('\n')
+	parser.Strict = true
+	parsed := parser.ParseString(testString)
+
+	if !parsed {
+		t.Error("Parsing test string returns FALSE")
+	}
+
+	checkField(t, "method", method, "cleanup")
+	checkField(t, "pid", pid, "29385")
+}
+
 func BenchmarkStrictParse(b *testing.B) {
 	testString := `[28/Jun/2013 12:54:48] example.com "GET /some/url HTTP/1.0" "Mozilla" "_session=3829834;" 28.314` + "\n"
 	parser := New()

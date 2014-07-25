@@ -1,5 +1,9 @@
 package tokenparser
 
+import (
+	"strings"
+)
+
 type ruleType uint8
 
 const (
@@ -8,11 +12,13 @@ const (
 	skip         ruleType = iota
 	skipAny      ruleType = iota
 	skipMultiple ruleType = iota
+	searchString ruleType = iota
 )
 
 type Rule struct {
 	Type        ruleType
 	Symbol      uint8
+	Pattern     string
 	Destination *string
 }
 
@@ -43,23 +49,27 @@ func New() *Tokenparser {
 }
 
 func (tp *Tokenparser) UpTo(symbol uint8, destination *string) {
-	tp.rules = append(tp.rules, Rule{upTo, symbol, destination})
+	tp.rules = append(tp.rules, Rule{upTo, symbol, "", destination})
 }
 
 func (tp *Tokenparser) Skip(symbol uint8) {
-	tp.rules = append(tp.rules, Rule{skip, symbol, nil})
+	tp.rules = append(tp.rules, Rule{skip, symbol, "", nil})
 }
 
 func (tp *Tokenparser) SkipTo(symbol uint8) {
-	tp.rules = append(tp.rules, Rule{skipTo, symbol, nil})
+	tp.rules = append(tp.rules, Rule{skipTo, symbol, "", nil})
 }
 
 func (tp *Tokenparser) SkipAny() {
-	tp.rules = append(tp.rules, Rule{skipAny, 0, nil})
+	tp.rules = append(tp.rules, Rule{skipAny, 0, "", nil})
 }
 
 func (tp *Tokenparser) SkipMultiple(count uint8) {
-	tp.rules = append(tp.rules, Rule{skipMultiple, count, nil})
+	tp.rules = append(tp.rules, Rule{skipMultiple, count, "", nil})
+}
+
+func (tp *Tokenparser) SearchString(pattern string) {
+	tp.rules = append(tp.rules, Rule{searchString, 0, pattern, nil})
 }
 
 func (tp *Tokenparser) ParseString(line string) bool {
@@ -113,6 +123,13 @@ func (tp *Tokenparser) ParseString(line string) bool {
 					*currentRule.Destination = line[firstSym:linePointer]
 					break
 				}
+			}
+		case searchString:
+			offset := strings.Index(line[linePointer:len(line)], currentRule.Pattern)
+			if offset == -1 {
+				return false
+			} else {
+				linePointer += offset
 			}
 		}
 		currentRule = nextRule()
