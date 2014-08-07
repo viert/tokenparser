@@ -146,7 +146,35 @@ func BenchmarkStrictParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		pd := parser.ParseString(testString)
 		if !pd {
-			b.Error("Parser return FALSE")
+			b.Error("Parser returned FALSE")
+		}
+	}
+}
+
+func BenchmarkShortUpTo(b *testing.B) {
+	testString := `[]`
+	parser := New()
+	var content string
+
+	parser.UpTo(']', &content)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		pd := parser.ParseString(testString)
+		if !pd {
+			b.Error("Parser returned FALSE")
+		}
+	}
+}
+
+func BenchmarkSearchString(b *testing.B) {
+	testString := `[example.com "GET /some/url HTTP/1.0" "Mozilla" "_session=3829834;" 28.314]`
+	parser := New()
+	parser.SearchString("Mozilla")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		pd := parser.ParseString(testString)
+		if !pd {
+			b.Error("Parser returned FALSE")
 		}
 	}
 }
